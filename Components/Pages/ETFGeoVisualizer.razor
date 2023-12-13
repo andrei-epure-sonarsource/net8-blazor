@@ -5,40 +5,40 @@
 
 <PageTitle>ETF Geo Visualizer</PageTitle>
 
-<h3>Todo (@todos.Count(todo => !todo.IsDone))</h3>
+<input placeholder="Search an asset by ticker regex" @bind="newAssetRegex" />
+<button @onclick="AddPosition">Add asset to portfolio</button>
 
-<input placeholder="Something todo" @bind="newTodo" />
-<button @onclick="AddTodo">Add todo</button>
+<p>
+    <h3>Positions in portfolio: @positions.Count()</h3>
 
-
-<table>
-    @foreach (var todo in todos)
-    {
-        <tr>
-            <td>
-                <input type="checkbox" @bind="todo.IsDone" />
-            </td>
-            <td>
-                <input @bind="todo.Title" />
-            </td>
-            <td>
-                <p>Test</p>
-            </td>
-        </tr>
-    }
-</table>
-
+    <table>
+        @foreach (var todo in positions)
+        {
+            <tr>
+                <td>
+                    <input type="checkbox" @bind="todo.IsDone" />
+                </td>
+                <td>
+                    <input @bind="todo.Title" />
+                </td>
+                <td>
+                    <p>Test</p>
+                </td>
+            </tr>
+        }
+    </table>
+</p>
 
 @code {
-    private string? newTodo;
-    private List<TodoItem> todos = new();
+    private string? newAssetRegex;
+    private List<TodoItem> positions = new();
 
-    private void AddTodo()
+    private void AddPosition()
     {
-        if (!string.IsNullOrWhiteSpace(newTodo))
+        if (!string.IsNullOrWhiteSpace(newAssetRegex))
         {
-            todos.Add(new TodoItem { Title = newTodo });
-            newTodo = string.Empty;
+            positions.Add(new TodoItem { Title = newAssetRegex });
+            newAssetRegex = string.Empty;
         }
     }
 }
