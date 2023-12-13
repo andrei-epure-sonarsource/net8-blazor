@@ -7,7 +7,7 @@
 <PageTitle>ETF Geo Visualizer</PageTitle>
 
 <input placeholder="Search an asset by ticker regex" @onchange="@((ChangeEventArgs e) => SearchAsset(e.Value.ToString()))" />
-<p>@searchAssetError</p>
+<p>Error: @searchAssetError</p>
 
 <p>
     <table>
@@ -57,6 +57,11 @@
     private List<Asset> assets = new();
     private List<PositionView> positions = new();
 
+    protected override async Task OnInitializedAsync()
+    {
+        SearchAsset(string.Empty);
+    }
+
     private void SearchAsset(string searchAssetRegex)
     {
         if (!string.IsNullOrWhiteSpace(searchAssetRegex))
@@ -69,6 +74,7 @@
             else
             {
                 searchAssetError = "Invalid regex";
+                assets = new();
             }
         }
         else
