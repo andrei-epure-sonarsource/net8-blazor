@@ -12,14 +12,14 @@
     <h3>Positions in portfolio: @positions.Count()</h3>
 
     <table>
-        @foreach (var todo in positions)
+        @foreach (var position in positions)
         {
             <tr>
                 <td>
-                    <input type="checkbox" @bind="todo.IsDone" />
+                    <input type="checkbox" />
                 </td>
                 <td>
-                    <input @bind="todo.Title" />
+                    <input @bind="position.Ticker" />
                 </td>
                 <td>
                     <p>Test</p>
@@ -39,9 +39,20 @@
     {
         if (!string.IsNullOrWhiteSpace(newAssetRegex))
         {
-            var asset = database.RetrieveAssetsMatchingPattern(newAssetRegex);
+            // FIXME: replace FirstOrDefault with a dropdown list selection
+            var asset = database.RetrieveAssetsMatchingPattern(newAssetRegex).FirstOrDefault();
 
-            positions.Add(new PositionView { Title = newAssetRegex });
+            if (asset is not null)
+            {
+                positions.Add(
+                    new PositionView
+                    {
+                        Ticker = asset.Ticker,
+                        AssetClass = asset.AssetClass.ToString(),
+                        Description = asset.Description,
+                        WeightInPortfolio = (100m / (positions.Count() + 1)).ToString("0.00%")
+                    });
+            }
             newAssetRegex = string.Empty;
         }
     }
