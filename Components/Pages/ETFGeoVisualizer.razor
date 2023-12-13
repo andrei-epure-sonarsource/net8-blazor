@@ -1,32 +1,31 @@
 ﻿@using Microsoft.AspNetCore.Mvc.Rendering;
 @using System.Text.RegularExpressions
 
+@inject IJSRuntime JS
+
 @page "/etfGeoVisualizer"
 @rendermode InteractiveServer
 
 <PageTitle>ETF Geo Visualizer</PageTitle>
 
 <input placeholder="Search an asset by ticker regex" @onchange="@((ChangeEventArgs e) => SearchAsset(e.Value.ToString()))" />
-<p>Error: @searchAssetError</p>
+<p>@searchAssetError</p>
 
 <p>
     <table>
         @foreach (var asset in assets)
         {
             <tr>
-                <td>
-                    <input type="checkbox" />
-                </td>
-                <td>
-                    <input @bind="asset.Ticker" />
-                </td>
+                <td><input @bind="asset.Ticker" /></td>
+                <td><input @bind="asset.AssetClass" /></td>
+                <td><input @bind="asset.Description" /></td>
             </tr>
         }
     </table>
 </p>
 
 
-<button @onclick="AddPosition">Add asset to portfolio</button>
+<button @onclick="AddPositionAsync">Add asset to portfolio</button>
 
 <p>
     <h3>Positions in portfolio: @positions.Count()</h3>
@@ -49,6 +48,12 @@
     </table>
 </p>
 
+<p>
+    <h3>Geographic allocation:</h3>
+
+    <div id="worldMapContainer"></div>
+</p>
+
 @code {
     private static IDatabase database = new FakeDatabase();
 
@@ -68,23 +73,23 @@
         {
             if (IsValidRegex(searchAssetRegex))
             {
-                searchAssetError = string.Empty;
                 assets = database.RetrieveAssetsMatchingPattern(searchAssetRegex);
+                searchAssetError = $"Found {assets.Count} assets";
             }
             else
             {
-                searchAssetError = "Invalid regex";
+                searchAssetError = "Error: invalid regex";
                 assets = new();
             }
         }
         else
         {
-            searchAssetError = "Empty regex";
+            searchAssetError = "Error: empty regex";
             assets = new();
         }
     }
 
-    private void AddPosition()
+    private async Task AddPositionAsync()
     {
         if (assets.Count == 1 && assets.Single() is not null and var asset)
         {
@@ -96,7 +101,12 @@
                     Description = asset.Description,
                     WeightInPortfolio = (100m / (positions.Count() + 1)).ToString("0.00%")
                 });
-            searchAssetRegex = string.Empty;
+
+
+            var geoAreasSharesOfPortfolio = """{ "US": 0.5, "Europe": 0.5 }""";
+            await JS.InvokeVoidAsync("showWorldMap", "worldMapContainer", geoAreasSharesOfPortfolio);
+
+            SearchAsset(searchAssetRegex);
         }
     }
 
@@ -108,12 +118,11 @@
         try
         {
             Regex.Match("", pattern);
+            return true;
         }
         catch (ArgumentException)
         {
             return false;
         }
-
-        return true;
     }
 }
