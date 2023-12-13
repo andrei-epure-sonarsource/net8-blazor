@@ -1,0 +1,48 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering;
+
+@page "/etfGeoVisualizer"
+@rendermode InteractiveServer
+
+<PageTitle>ETF Geo Visualizer</PageTitle>
+
+<input placeholder="Search an asset by ticker regex" @bind="newAssetRegex" />
+<button @onclick="AddPosition">Add asset to portfolio</button>
+
+<p>
+    <h3>Positions in portfolio: @positions.Count()</h3>
+
+    <table>
+        @foreach (var todo in positions)
+        {
+            <tr>
+                <td>
+                    <input type="checkbox" @bind="todo.IsDone" />
+                </td>
+                <td>
+                    <input @bind="todo.Title" />
+                </td>
+                <td>
+                    <p>Test</p>
+                </td>
+            </tr>
+        }
+    </table>
+</p>
+
+@code {
+    private static IDatabase database = new FakeDatabase();
+
+    private string? newAssetRegex;
+    private List<Position> positions = new();
+
+    private void AddPosition()
+    {
+        if (!string.IsNullOrWhiteSpace(newAssetRegex))
+        {
+            var asset = database.RetrieveAssetsMatchingPattern(newAssetRegex);
+
+            positions.Add(new Position { Title = newAssetRegex });
+            newAssetRegex = string.Empty;
+        }
+    }
+}
