@@ -15,6 +15,10 @@ builder.Services.AddResponseCompression(opts =>
           new[] { "application/octet-stream" });
 });
 
+builder.Services.AddHttpClient();
+builder.Services.AddControllers();
+
+
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILoggerFactory>()
@@ -41,5 +45,7 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.MapHub<ChatHub>("/chathub");
+
+app.MapControllers();
 
 app.Run();
