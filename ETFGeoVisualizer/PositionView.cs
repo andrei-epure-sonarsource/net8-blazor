@@ -1,5 +1,6 @@
 ﻿public class PositionView
 {
+    public Asset Asset { get; set; }
     public string Ticker { get; set; }
     public string AssetClass { get; set; }
     public string Description { get; set; }

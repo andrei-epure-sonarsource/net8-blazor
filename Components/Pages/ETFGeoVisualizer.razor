@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Mvc.Rendering;
 @using System.Text.RegularExpressions
+@using System.Globalization
 
 @inject IJSRuntime JS
 
@@ -96,15 +97,30 @@
             positions.Add(
                 new PositionView
                 {
+                    Asset = asset,
                     Ticker = asset.Ticker,
                     AssetClass = asset.AssetClass.ToString(),
                     Description = asset.Description,
-                    WeightInPortfolio = (100m / (positions.Count() + 1)).ToString("0.00%")
+                    WeightInPortfolio = (100m / (positions.Count() + 1)).ToString(CultureInfo.InvariantCulture)
                 });
 
+            var geoWeights = (
+                from position in positions
+                from geoWeight in position.Asset.GeoAllocation
+                let geoWeightWeighted = geoWeight.Percentage * decimal.Parse(position.WeightInPortfolio)
+                select new { geoWeight.Area, geoWeightWeighted }
+            ).ToArray();
 
-            var geoAreasSharesOfPortfolio = """{ "US": 0.5, "Europe": 0.5 }""";
-            await JS.InvokeVoidAsync("showWorldMap", "worldMapContainer", geoAreasSharesOfPortfolio);
+            var geoAreasSharesOfPortfolio = (
+                from geoWeight in geoWeights
+                group geoWeight by geoWeight.Area into geoWeightAreaGroup
+                select new { geoArea = geoWeightAreaGroup.Key, geoWeight = geoWeightAreaGroup.Select(x => x.geoWeightWeighted).Sum()}
+            ).ToArray();
+
+            var geoAreasSharesOfPortfolioDict = geoAreasSharesOfPortfolio.ToDictionary(x => x.geoArea, x => x.geoWeight);
+            var geoAreasSharesOfPortfolioJson = System.Text.Json.JsonSerializer.Serialize(geoAreasSharesOfPortfolioDict);
+            // """{ "US": 0.5, "Europe": 0.5 }""";
+            await JS.InvokeVoidAsync("showWorldMap", "worldMapContainer", geoAreasSharesOfPortfolioJson);
 
             SearchAsset(searchAssetRegex);
         }
