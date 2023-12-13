@@ -1,11 +1,31 @@
 ﻿@using Microsoft.AspNetCore.Mvc.Rendering;
+@using System.Text.RegularExpressions
 
 @page "/etfGeoVisualizer"
 @rendermode InteractiveServer
 
 <PageTitle>ETF Geo Visualizer</PageTitle>
 
-<input placeholder="Search an asset by ticker regex" @bind="newAssetRegex" />
+<input placeholder="Search an asset by ticker regex" @onchange="@((ChangeEventArgs e) => SearchAsset(e.Value.ToString()))" />
+<p>@searchAssetError</p>
+
+<p>
+    <table>
+        @foreach (var asset in assets)
+        {
+            <tr>
+                <td>
+                    <input type="checkbox" />
+                </td>
+                <td>
+                    <input @bind="asset.Ticker" />
+                </td>
+            </tr>
+        }
+    </table>
+</p>
+
+
 <button @onclick="AddPosition">Add asset to portfolio</button>
 
 <p>
@@ -32,28 +52,62 @@
 @code {
     private static IDatabase database = new FakeDatabase();
 
-    private string? newAssetRegex;
+    private string? searchAssetRegex = null;
+    private string? searchAssetError = null;
+    private List<Asset> assets = new();
     private List<PositionView> positions = new();
+
+    private void SearchAsset(string searchAssetRegex)
+    {
+        if (!string.IsNullOrWhiteSpace(searchAssetRegex))
+        {
+            if (IsValidRegex(searchAssetRegex))
+            {
+                searchAssetError = string.Empty;
+                assets = database.RetrieveAssetsMatchingPattern(searchAssetRegex);
+            }
+            else
+            {
+                searchAssetError = "Invalid regex";
+            }
+        }
+        else
+        {
+            searchAssetError = "Empty regex";
+            assets = new();
+        }
+    }
 
     private void AddPosition()
     {
-        if (!string.IsNullOrWhiteSpace(newAssetRegex))
+        if (assets.Count == 1 && assets.Single() is not null and var asset)
         {
-            // FIXME: replace FirstOrDefault with a dropdown list selection
-            var asset = database.RetrieveAssetsMatchingPattern(newAssetRegex).FirstOrDefault();
-
-            if (asset is not null)
-            {
-                positions.Add(
-                    new PositionView
-                    {
-                        Ticker = asset.Ticker,
-                        AssetClass = asset.AssetClass.ToString(),
-                        Description = asset.Description,
-                        WeightInPortfolio = (100m / (positions.Count() + 1)).ToString("0.00%")
-                    });
-            }
-            newAssetRegex = string.Empty;
+            positions.Add(
+                new PositionView
+                {
+                    Ticker = asset.Ticker,
+                    AssetClass = asset.AssetClass.ToString(),
+                    Description = asset.Description,
+                    WeightInPortfolio = (100m / (positions.Count() + 1)).ToString("0.00%")
+                });
+            searchAssetRegex = string.Empty;
         }
+    }
+
+    private static bool IsValidRegex(string pattern)
+    {
+        if (string.IsNullOrWhiteSpace(pattern))
+            return false;
+
+        try
+        {
+            Regex.Match("", pattern);
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+
+        return true;
     }
 }
