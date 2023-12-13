@@ -4,5 +4,6 @@
     public string Ticker { get; set; }
     public string AssetClass { get; set; }
     public string Description { get; set; }
-    public string WeightInPortfolio { get; set; }
+    public decimal WeightInPortfolio { get; set; }
+    public string WeightInPortfolioStr { get; set; }
 }

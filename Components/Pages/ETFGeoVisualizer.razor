@@ -9,6 +9,8 @@
 
 <PageTitle>ETF Geo Visualizer</PageTitle>
 
+<p>Find a single asset to add to your portfolio:</p>
+
 <input placeholder="Search an asset by ticker regex" @onchange="@((ChangeEventArgs e) => SearchAsset(e.Value.ToString()))" />
 <p>@searchAssetError</p>
 
@@ -41,9 +43,9 @@
                 <td>
                     <input @bind="position.Ticker" />
                 </td>
-                <td>
-                    <p>Test</p>
-                </td>
+                <td>@position.AssetClass</td>
+                <td>@position.Description</td>
+                <td>@position.WeightInPortfolioStr</td>
             </tr>
         }
     </table>
@@ -101,13 +103,20 @@
                     Ticker = asset.Ticker,
                     AssetClass = asset.AssetClass.ToString(),
                     Description = asset.Description,
-                    WeightInPortfolio = (100m / (positions.Count() + 1)).ToString(CultureInfo.InvariantCulture)
+                    WeightInPortfolio = 1m,
+                    WeightInPortfolioStr = "100%",
                 });
+
+            foreach (var position in positions)
+            {
+                position.WeightInPortfolio = 1m / positions.Count();
+                position.WeightInPortfolioStr = $"{position.WeightInPortfolio * 100m}%";
+            }
 
             var geoWeights = (
                 from position in positions
                 from geoWeight in position.Asset.GeoAllocation
-                let geoWeightWeighted = geoWeight.Percentage * decimal.Parse(position.WeightInPortfolio)
+                let geoWeightWeighted = geoWeight.Percentage * position.WeightInPortfolio
                 select new { geoWeight.Area, geoWeightWeighted }
             ).ToArray();
 
