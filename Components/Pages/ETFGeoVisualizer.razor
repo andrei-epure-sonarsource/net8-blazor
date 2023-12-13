@@ -33,7 +33,7 @@
     private static IDatabase database = new FakeDatabase();
 
     private string? newAssetRegex;
-    private List<Position> positions = new();
+    private List<PositionView> positions = new();
 
     private void AddPosition()
     {
@@ -41,7 +41,7 @@
         {
             var asset = database.RetrieveAssetsMatchingPattern(newAssetRegex);
 
-            positions.Add(new Position { Title = newAssetRegex });
+            positions.Add(new PositionView { Title = newAssetRegex });
             newAssetRegex = string.Empty;
         }
     }
