@@ -53,7 +53,7 @@
         hubConnection.On<List<string>>("ReloadMessages", (serverMessages) =>
         {
             ILogger<Home> logger = LoggerFactory.CreateLogger<Home>();
-            logger.LogWarning($"Logging from client side ReloadMessages the {reloadMessagesCount}th time");
+            logger.LogWarning($"Logging from client side ReloadMessages the {reloadMessagesCount}th time; existing message count {messages.Count}; received new message count: {serverMessages.Count}");
             reloadMessagesCount++;
 
             messages.AddRange(serverMessages);
