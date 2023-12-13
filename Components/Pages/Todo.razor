@@ -1,0 +1,32 @@
+﻿@using Microsoft.AspNetCore.Mvc.Rendering;
+
+@page "/todo"
+@rendermode InteractiveServer
+
+<PageTitle>Todo 2</PageTitle>
+
+<h3>Todo a</h3>
+
+<ul>
+    @foreach (var todo in todos)
+    {
+        <li>@todo.Title</li>
+    }
+</ul>
+
+<input placeholder="Something todo" @bind="newTodo" />
+<button @onclick="AddTodo">Add todo</button>
+
+@code {
+    private string? newTodo;
+    private List<TodoItem> todos = new();
+
+    private void AddTodo()
+    {
+        if (!string.IsNullOrWhiteSpace(newTodo))
+        {
+            todos.Add(new TodoItem { Title = newTodo });
+            newTodo = string.Empty;
+        }
+    }
+}
