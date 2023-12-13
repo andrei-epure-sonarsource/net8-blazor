@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-public class FakeDatabase : Database
+public class FakeDatabase : IDatabase
 {
     // ETFs
     private static readonly List<GeoWeight> vwceGeoAllocation =
@@ -46,7 +46,7 @@ public class FakeDatabase : Database
         ["MSFT"] = new("MSFT", AssetClass.Stock, "Microsoft Corporation", msftGeoAllocation),
     };
 
-    public List<Asset> RetrieveAssetsMatchingPattern(string tickerRegex, Dictionary<string, Asset> assetsBySearchableKey)
+    public List<Asset> RetrieveAssetsMatchingPattern(string tickerRegex)
     {
         var matchingAssets = new List<Asset>();
         foreach (var asset in assetsBySearchableKey.Values)

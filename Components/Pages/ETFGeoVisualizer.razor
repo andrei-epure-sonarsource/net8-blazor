@@ -30,14 +30,18 @@
 </p>
 
 @code {
+    private static IDatabase database = new FakeDatabase();
+
     private string? newAssetRegex;
-    private List<TodoItem> positions = new();
+    private List<Position> positions = new();
 
     private void AddPosition()
     {
         if (!string.IsNullOrWhiteSpace(newAssetRegex))
         {
-            positions.Add(new TodoItem { Title = newAssetRegex });
+            var asset = database.RetrieveAssetsMatchingPattern(newAssetRegex);
+
+            positions.Add(new Position { Title = newAssetRegex });
             newAssetRegex = string.Empty;
         }
     }

@@ -1,5 +1,5 @@
-﻿public interface Database
+﻿public interface IDatabase
 {
-    List<Asset> RetrieveAssetsMatchingPattern(string tickerRegex, Dictionary<string, Asset> assetsBySearchableKey);
+    List<Asset> RetrieveAssetsMatchingPattern(string tickerRegex);
 }
 
