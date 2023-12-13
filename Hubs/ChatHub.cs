@@ -4,17 +4,26 @@ namespace TodoList.Hubs;
 
 public class ChatHub : Hub
 {
-    private Dictionary<string, string> messages = new();
+    private ILogger<ChatHub> logger;
+    private List<string> messages = new();
+
+    public ChatHub(ILoggerFactory LoggerFactory)
+    {
+        logger = LoggerFactory.CreateLogger<ChatHub>();
+    }
 
     public async Task Reload(string connectionId)
     {
-        await Clients.Client(connectionId).SendAsync("Reload", messages);
+        logger.LogWarning($"Server side Reload: {connectionId}");
+        logger.LogWarning($"Server side Reload: {messages.Count} messages");
+        await Clients.Client(connectionId).SendAsync("ReloadMessages", messages);
     }
 
-    public async Task SendMessage(string user, string message)
+    public async Task SendMessage(string message)
     {
-        messages[user] = message;
+        logger.LogWarning($"Server side SendMessage: {message}");
+        messages.Add(message);
 
-        await Clients.All.SendAsync("ReceiveMessage", user, message);
+        await Clients.All.SendAsync("ReceiveMessage", message);
     }
 }

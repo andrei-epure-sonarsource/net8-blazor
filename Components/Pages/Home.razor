@@ -1,4 +1,6 @@
 ﻿@page "/"
+@inject ILoggerFactory LoggerFactory
+
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager Navigation
@@ -19,6 +21,7 @@
     </label>
 </div>
 <button @onclick="Send" disabled="@(!IsConnected)">Send</button>
+<button @onclick="ReloadButton" disabled="@(!IsConnected)">Reload</button>
 
 <p placeholder="<Loading connection id>" @bind="connectionId" />
 
@@ -39,6 +42,7 @@
     private List<string> messages = new List<string>();
     private string? userInput;
     private string? messageInput;
+    private int reloadMessagesCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -46,16 +50,19 @@
             .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
             .Build();
 
-        hubConnection.On<Dictionary<string,string>>("Reload", (serverMessages) =>
+        hubConnection.On<List<string>>("ReloadMessages", (serverMessages) =>
         {
-            messages.AddRange(serverMessages.Select((x, y) => $"History {x}: {y}"));
+            ILogger<Home> logger = LoggerFactory.CreateLogger<Home>();
+            logger.LogWarning($"Logging from client side ReloadMessages the {reloadMessagesCount}th time");
+            reloadMessagesCount++;
+
+            messages.AddRange(serverMessages);
             InvokeAsync(StateHasChanged);
         });
 
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
+        hubConnection.On<string>("ReceiveMessage", (message) =>
         {
-            var encodedMsg = $"{user}: {message}";
-            messages.Add(encodedMsg);
+            messages.Add(message);
             InvokeAsync(StateHasChanged);
         });
 
@@ -68,7 +75,20 @@
     {
         if (hubConnection is not null)
         {
-            await hubConnection.SendAsync("SendMessage", userInput, messageInput);
+            var message = $"{userInput}: {messageInput}";
+            ILogger<Home> logger = LoggerFactory.CreateLogger<Home>();
+            logger.LogWarning($"Logging from client side Send {message}");
+            await hubConnection.SendAsync("SendMessage", message);
+        }
+    }
+
+    private async Task ReloadButton()
+    {
+        if (hubConnection is not null)
+        {
+            ILogger<Home> logger = LoggerFactory.CreateLogger<Home>();
+            logger.LogWarning("Logging from client side ReloadButton");
+            await hubConnection.SendAsync("Reload", hubConnection.ConnectionId);
         }
     }
 

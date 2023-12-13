@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Hosting;
 using TodoList.Components;
 using TodoList.Hubs;
 
@@ -15,6 +16,10 @@ builder.Services.AddResponseCompression(opts =>
 });
 
 var app = builder.Build();
+
+var logger = app.Services.GetRequiredService<ILoggerFactory>()
+    .CreateLogger<Program>();
+logger.LogInformation("Logged after the app is built in the Program file.");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
